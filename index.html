@@ -14,6 +14,13 @@
         canvas {
             display: block;
         }
+
+        .randomDiv {
+            width: 50px;
+            height: 50px;
+            background-color: green;
+            position: absolute;
+        }
     </style>
 </head>
 
@@ -26,7 +33,35 @@
         const ctx = canvas.getContext('2d');
         canvas.width = window.innerWidth;
         canvas.height = window.innerHeight;
+        //RandomTargets
+        function getRandomNumber(min, max) {
+            return Math.floor(Math.random() * (max - min + 1)) + min;
+        }
+        var numberOfDivs = 5;
+        //Targets
+        const targett = {
+            width: 50,
+            height: 50,
+            color: 'green',
+            velocity: 5
+        };
+        function createRand(target) {
+            for (var i = 0; i < numberOfDivs; i++) {
+                var newDiv = document.createElement("div");
+                newDiv.className = "randomDiv";
+                newDiv.style.width = target.width + "px";
+                newDiv.style.height = target.height + "px";
+                newDiv.style.backgroundColor = target.color;
+                newDiv.style.position = "absolute";
+                var randomX = getRandomNumber(0, window.innerWidth - target.width);
+                var randomY = getRandomNumber(0, window.innerHeight - target.height);
+                newDiv.style.left = randomX + "px";
+                newDiv.style.top = randomY + "px";
+                document.body.appendChild(newDiv);
+            }
+        }
 
+        createRand(targett);
         //PlayerPaddle
         const playerPaddle = {
             x: canvas.width / 2 - 50,
@@ -36,6 +71,8 @@
             color: 'green',
             velocity: 5
         };
+
+
 
         // Create Ball
         const ball = {
@@ -59,6 +96,7 @@
 
         // Game loop
         function Game() {
+            
             // Ball physics
             ball.velocity.y += ball.gravity;
             ball.x += ball.velocity.x;
@@ -73,6 +111,40 @@
             if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
                 ball.velocity.y = -ball.velocity.y;
             }
+            // Bounce off targets and delete them
+            var targets = document.querySelectorAll(".randomDiv");
+            console.log("Количество элементов с классом 'target':", targets.length);
+            if (targets.length <= 0 )
+            {createRand(targett)};
+            
+            targets.forEach(function (target) {
+                // Convert target div's style properties to numbers for collision detection
+                const targetRect = target.getBoundingClientRect();
+                const targetX = targetRect.left;
+                const targetY = targetRect.top;
+                const targetWidth = targetRect.width;
+                const targetHeight = targetRect.height;
+
+                // Check collision with target
+                if (
+                    ball.x - ball.radius < targetX + targetWidth &&
+                    ball.x + ball.radius > targetX &&
+                    ball.y + ball.radius > targetY &&
+                    ball.y - ball.radius < targetY + targetHeight
+                ) {
+                    ball.velocity.y = -ball.velocity.y - 10;
+                    let rand = Math.random();
+                    console.log(rand);
+                    if (rand <= 0.5) {
+                        ball.velocity.x = +ball.velocity.x + 2;
+                    } else if (rand > 0.5) {
+                        ball.velocity.x = -ball.velocity.x - 2;
+                    }
+
+                    // Remove the collided target
+                    target.remove();
+                }
+            });
 
             // Bounce off the player paddle
             if (
@@ -80,10 +152,10 @@
                 ball.y + ball.radius > playerPaddle.y &&
                 ball.y - ball.radius < playerPaddle.y + playerPaddle.height
             ) {
-                ball.velocity.y = -ball.velocity.y - 10;
+                ball.velocity.y = -ball.velocity.y - 15;
                 let rand = Math.random();
                 console.log(rand);
-                if (rand <= 0.5){
+                if (rand <= 0.5) {
                     ball.velocity.x = +ball.velocity.x + 2;
                 } else if (rand > 0.5) {
                     ball.velocity.x = -ball.velocity.x - 2;
