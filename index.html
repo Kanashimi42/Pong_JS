@@ -1,0 +1,116 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pong Game</title>
+    <style>
+        body {
+            margin: 0;
+            overflow: hidden;
+        }
+
+        canvas {
+            display: block;
+        }
+    </style>
+</head>
+
+<body>
+    <canvas id="pongCanvas"></canvas>
+
+    <script>
+        //Canvas
+        const canvas = document.getElementById('pongCanvas');
+        const ctx = canvas.getContext('2d');
+        canvas.width = window.innerWidth;
+        canvas.height = window.innerHeight;
+
+        //PlayerPaddle
+        const playerPaddle = {
+            x: canvas.width / 2 - 50,
+            y: canvas.height - 20,
+            width: 100,
+            height: 10,
+            color: 'green',
+            velocity: 5
+        };
+
+        // Create Ball
+        const ball = {
+            x: canvas.width / 2,
+            y: canvas.height / 2,
+            radius: 10,
+            color: 'blue',
+            velocity: {
+                x: Math.random() * 4 - 2,
+                y: Math.random() * 4 - 2
+            },
+            friction: 0.99,
+            gravity: 0.2
+        };
+
+        // Mouse paddle control
+        canvas.addEventListener('mousemove', (e) => {
+            const mouseX = e.clientX - canvas.getBoundingClientRect().left;
+            playerPaddle.x = mouseX - playerPaddle.width / 2;
+        });
+
+        // Game loop
+        function Game() {
+            // Ball physics
+            ball.velocity.y += ball.gravity;
+            ball.x += ball.velocity.x;
+            ball.y += ball.velocity.y;
+            ball.velocity.x *= ball.friction;
+            ball.velocity.y *= ball.friction;
+
+            // Bounce off walls
+            if (ball.x - ball.radius < 0 || ball.x + ball.radius > canvas.width) {
+                ball.velocity.x = -ball.velocity.x;
+            }
+            if (ball.y - ball.radius < 0 || ball.y + ball.radius > canvas.height) {
+                ball.velocity.y = -ball.velocity.y;
+            }
+
+            // Bounce off the player paddle
+            if (
+                ball.x - ball.radius < playerPaddle.x + playerPaddle.width &&
+                ball.y + ball.radius > playerPaddle.y &&
+                ball.y - ball.radius < playerPaddle.y + playerPaddle.height
+            ) {
+                ball.velocity.y = -ball.velocity.y - 10;
+                let rand = Math.random();
+                console.log(rand);
+                if (rand <= 0.5){
+                    ball.velocity.x = +ball.velocity.x + 2;
+                } else if (rand > 0.5) {
+                    ball.velocity.x = -ball.velocity.x - 2;
+                }
+            }
+
+            // Clear
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            // Draw paddle
+            ctx.fillStyle = playerPaddle.color;
+            ctx.fillRect(playerPaddle.x, playerPaddle.y, playerPaddle.width, playerPaddle.height);
+
+            // Draw ball
+            ctx.beginPath();
+            ctx.arc(ball.x, ball.y, ball.radius, 0, Math.PI * 2);
+            ctx.fillStyle = ball.color;
+            ctx.fill();
+            ctx.closePath();
+
+            // Request the next frame
+            requestAnimationFrame(Game);
+        }
+
+        // Start the game
+        Game();
+    </script>
+</body>
+
+</html>
